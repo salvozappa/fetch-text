@@ -6,10 +6,10 @@ import subprocess
 import tempfile
 import os
 
-def download_subtitles(youtube_link):
+def download_subtitles(youtube_link, language='en'):
     with tempfile.TemporaryDirectory() as tmpdir:
         command = [
-            'yt-dlp', '--write-auto-subs', '--skip-download', '--sub-lang', 'it',
+            'yt-dlp', '--write-auto-subs', '--skip-download', '--sub-lang', language,
             '--output', os.path.join(tmpdir, 'video'), youtube_link
         ]
         subprocess.run(command, check=True,
@@ -47,18 +47,22 @@ def clean_subtitles(subtitle_text):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <youtube_link>")
+    if len(sys.argv) not in [2, 3]:
+        print("Usage: fetch-text <youtube_link> [language_code]")
+        print("Example: fetch-text https://youtube.com/watch?v=xxx en")
+        print("Default language is 'en' if not specified")
         sys.exit(1)
 
     youtube_link = sys.argv[1]
+    language = sys.argv[2] if len(sys.argv) == 3 else 'en'
+
     try:
-        subtitle_text = download_subtitles(youtube_link)
+        subtitle_text = download_subtitles(youtube_link, language)
         if subtitle_text:
             cleaned_text = clean_subtitles(subtitle_text)
             print(cleaned_text)
         else:
-            print("Failed to download subtitles or no subtitles available.")
+            print(f"Failed to download subtitles or no subtitles available for language: {language}")
     except subprocess.CalledProcessError as e:
         print(f"Error downloading subtitles: {e}")
         sys.exit(1)
